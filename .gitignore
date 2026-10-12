@@ -1,0 +1,19 @@
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode and Swift build outputs
+/build/
+/DerivedData/
+/.build/
+xcuserdata/
+*.xcuserstate
+
+# Local configuration and signing secrets
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.key
