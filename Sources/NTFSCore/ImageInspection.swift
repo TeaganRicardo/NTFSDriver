@@ -19,7 +19,7 @@ public struct InspectionReport: Encodable, Sendable {
     }
 }
 
-/// Reads a bounded header through a read-only descriptor. Never opens raw disks.
+/// Reads a bounded header through a read-only descriptor; rejects special files before reading.
 public func inspectPartitionImage(atPath path: String) throws -> InspectionReport {
     guard !path.utf8.contains(0) else { throw InspectionError.invalid("路径含有 NUL。") }
     let descriptor = open(path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)

@@ -91,7 +91,8 @@ final class InspectionTests: XCTestCase {
     }
 
     func testInvalidReservedFieldsAndSignatureAreRejected() {
-        for offset in [14, 15, 16, 17, 18, 19, 20, 22, 23, 32, 33, 34, 35, 510, 511] {
+        for offset in [14, 15, 16, 17, 18, 19, 20, 22, 23, 32, 33, 34, 35,
+                       37, 39, 65, 66, 67, 69, 70, 71, 510, 511] {
             var data = header()
             data[offset] ^= 1
             XCTAssertThrowsError(try BootSector(data: data, resourceByteCount: capacity), "offset \(offset)")

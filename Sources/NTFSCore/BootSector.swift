@@ -42,9 +42,10 @@ public struct BootSector: Sendable, Equatable, Encodable {
         guard header[510] == 0x55, header[511] == 0xaa else {
             throw InspectionError.invalid("结束标记不是 0xAA55。")
         }
-        guard [14, 15, 16, 17, 18, 19, 20, 22, 23, 32, 33, 34, 35]
+        guard [14, 15, 16, 17, 18, 19, 20, 22, 23, 32, 33, 34, 35,
+               37, 39, 65, 66, 67, 69, 70, 71]
             .allSatisfy({ header[$0] == 0 }) else {
-            throw InspectionError.invalid("保留的 BPB 字段不是零。")
+            throw InspectionError.invalid("保留或必须为零的字段不是零。")
         }
 
         func integer(at offset: Int, bytes: Int) -> UInt64 {
