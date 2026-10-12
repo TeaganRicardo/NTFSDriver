@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+    <key>CFBundleIdentifier</key><string>io.github.TeaganRicardo.NTFSDriver.preview.fskit</string>
+    <key>CFBundleName</key><string>NTFSDriver Read Only</string>
+    <key>CFBundleExecutable</key><string>NTFSModule</string>
+    <key>CFBundlePackageType</key><string>XPC!</string>
+    <key>CFBundleShortVersionString</key><string>0.1.0</string>
+    <key>CFBundleVersion</key><string>2</string>
+    <key>LSMinimumSystemVersion</key><string>27.0</string>
+    <key>EXAppExtensionAttributes</key><dict>
+        <key>EXExtensionPointIdentifier</key><string>com.apple.fskit.fsmodule</string>
+        <key>FSShortName</key><string>ntfsdriverro</string>
+        <key>FSSupportsBlockResources</key><true/>
+        <key>FSSupportsPathURLs</key><false/>
+        <key>FSSupportsGenericURLResources</key><false/>
+        <key>FSSupportsServerURLs</key><false/>
+        <key>FSMediaTypes</key><dict/>
+        <key>FSPersonalities</key><dict>
+            <key>NTFSDriverReadOnly</key><dict>
+                <key>FSName</key><string>NTFSDriver Read Only</string>
+                <key>FSfileObjectsAreCaseSensitive</key><true/>
+            </dict>
+        </dict>
+        <key>FSCheckOptionSyntax</key><dict><key>shortOptions</key><string>nq</string></dict>
+        <key>FSFormatOptionSyntax</key><dict><key>shortOptions</key><string></string></dict>
+    </dict>
+</dict></plist>
