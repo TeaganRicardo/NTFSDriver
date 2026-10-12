@@ -6,7 +6,7 @@
 
 优先验证 **FSKit 文件系统扩展 + 成熟 NTFS 用户空间引擎**。FSKit 提供接入系统文件系统机制的公开接口；NTFS 引擎负责磁盘格式和文件操作；两者之间实现一个设备 I/O 与卷语义适配层。Apple 明确说明 FSKit 扩展运行在用户空间，并接入 Disk Arbitration、NetFS 和系统挂载工具；当前支持的 `FSUnaryFileSystem` 流程适合一个分区对应一个卷。[Apple FSKit 概览](https://developer.apple.com/documentation/fskit/)
 
-优先评估 Tuxera 的 `libntfs-3g`，同时审查已有的 FSKit 移植项目能否减少适配工作。这是待验证的技术选择；本阶段不引入引擎源码、不确定项目许可证、不安装扩展、不启用真实磁盘写入。
+M0 优先评估 Tuxera 的 `libntfs-3g`，同时审查已有的 FSKit 移植项目能否减少适配工作。M2 已固定并接入该库的只读路径，项目许可为 GPL-3.0-or-later，详见 [引擎接入审查](ENGINE_AUDIT.md)。尚未安装扩展或启用真实磁盘写入；原生验收仍待完成。
 
 产品可行性最先取决于两道证据门槛：一是有效签名的扩展能够被 macOS 27.0.1 正常发现、启用和调度；二是 NTFS 测试卷能够经 Disk Arbitration 自动挂载为 `/Volumes` 下的本地卷，并在 Finder、磁盘工具和标准文件 API 中正常工作。SDK 存在、代码编译通过、人工执行一次挂载命令，均不能替代这两项验收。
 
@@ -72,6 +72,8 @@ P0-04 的验收必须保存同一次测试的系统卷信息、挂载信息和 F
 FSKit 使用文件系统 app extension；Apple 的入口协议是 `UnaryFileSystemExtension`，其 `fileSystem` 返回 `FSUnaryFileSystem` 与操作协议的实现。Xcode 的文件系统扩展模板配置 `EXExtensionPointIdentifier = com.apple.fskit.fsmodule`、`EXAppExtensionAttributes` 和 `FSShortName`。本机模板中块设备支持默认关闭，`FSMediaTypes` 默认为空；新建 target 并不会自动获得正确的 NTFS 自动探测配置。[扩展入口协议](https://developer.apple.com/documentation/fskit/unaryfilesystemextension)、[官方样例的工程配置](https://developer.apple.com/documentation/fskit/building-a-passthrough-file-system)
 
 `com.apple.developer.fskit.fsmodule` 是公开的布尔 entitlement。Apple 当前 capabilities 表将 FSKit Module 标记为 Apple Developer Program 和 Developer ID 支持，免费 Apple Developer 一栏为空；不能假定公开仓库、ad hoc 签名或仅声明 entitlement 就足以完成可分发扩展。实际团队配置、签名身份、配置文件和系统加载仍需逐项验证。[公开 entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.fskit.fsmodule)、[macOS capabilities 表](https://developer.apple.com/help/account/reference/supported-capabilities-macos/)
+
+维护者已明确不办理付费团队，当前缺少匹配本项目的授权配置文件与 Developer ID 身份。自己的扩展路线尚无已验证的加载和发行条件。已签名 macFUSE FSKit 后端可以作为另一路线调查，但它的系统行为、部分非开源组件及许可同样需要核对；详见 [当前约束与选择](SIGNING.md)。
 
 官方样例要求用户在“系统设置 → 通用 → 登录项与扩展 → 文件系统扩展”启用模块。管理程序可以使用 `FSClient` 查询已安装模块，并读取 `FSModuleIdentity.isEnabled`；`openFileSystemExtensionsSettings()` 打开设置页面，文档没有承诺它可绕过用户授权或静默启用模块。首次安装方案应围绕可观察状态和系统授权引导设计。[官方启用流程](https://developer.apple.com/documentation/fskit/building-a-passthrough-file-system)、[已安装模块查询](https://developer.apple.com/documentation/fskit/fsclient)、[模块状态](https://developer.apple.com/documentation/fskit/fsmoduleidentity)、[打开设置页面](https://developer.apple.com/documentation/fskit/fsclient/openfilesystemextensionssettings())
 

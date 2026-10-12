@@ -1,0 +1,19 @@
+{
+  "imageBytes": 67108864,
+  "imageSHA256": "b2d5146341cfe073465f324249e10cb788f424b8e04124ce7f0458da0aed4224",
+  "engineCommit": "7f0f841fc52cf719106c5c93bafe465004e36816",
+  "files": {
+    "Alpha.bin": {
+      "bytes": 2097408,
+      "sha256": "ad4707187ce2c9c3d16909bd20eb1c440fa9d2717bff5b836db2d32f997da4d2"
+    },
+    "中文🦊.txt": {
+      "bytes": 54,
+      "sha256": "c0e6b9ab8557c94bf9d37202845a86341c7561c292670a456dd42321ecaf5444"
+    },
+    "empty.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

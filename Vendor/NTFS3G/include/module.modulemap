@@ -1,0 +1,4 @@
+module CNTFSEngine {
+    header "EngineShim.h"
+    export *
+}
