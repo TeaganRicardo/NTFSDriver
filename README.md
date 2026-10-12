@@ -10,11 +10,11 @@
 
 目标平台为 Apple Silicon / macOS 27，初始开发与验证环境为 macOS 27.0.1。
 
-开发顺序与退出条件见 [开发与验收计划](docs/PLAN.md)；官方接口、引擎候选和待验证项见 [技术可行性研究](docs/FEASIBILITY.md)。
+当前的实施优先级与退出条件见 [原生优先开发计划](docs/PLAN.md)；[原生体验与竞品基准](docs/NATIVE_EXPERIENCE_REFERENCE.md)说明为什么以 xntfs 的 direct FSKit 真实物理卷结构作为技术参考、以 Paragon 的无感使用体验作为产品验收目标。官方接口及候选资料见 [技术可行性研究](docs/FEASIBILITY.md)。
 
-项目维护者不办理付费 Apple Developer 账号。自己的 FSKit 扩展目前缺少授权配置文件与发行签名；已有签名组件已验证可供实验客户端接入，但完整产品路线仍待验收。具体影响和路线见 [签名与系统集成限制](docs/SIGNING.md)。开发、离线读取与测试无需这类账号；原生挂载验收不能由离线结果代替。
+项目维护者不办理付费 Apple Developer 账号。自己的 FSKit 扩展仍缺少授权配置文件与发行签名；这已被提升为正式产品的**前置 G0 阻断**。已签名第三方模块不等于我们的扩展能获授权运行。此约束及允许继续的离线工作见 [签名与系统集成限制](docs/SIGNING.md)。
 
-macFUSE 已签名 FSKit 后端的开发实验已跑通模块加载与只读镜像文件访问，客户端不需要自有 FSKit 签名。实验还未满足磁盘工具设备身份、只读卷属性、正常推出和自动挂载要求，不能作为日常驱动使用。代码、重现方法与有限证据见 [运行实验](docs/MACFUSE_EXPERIMENT.md)，其他候选见 [方案比较](docs/ALTERNATIVES.md)。
+macFUSE 的已签名 FSKit 后端已跑通只读镜像访问，但它生成合成虚拟卷，当前没有满足原始 NTFS 磁盘身份、系统只读属性和标准推出等关键要求。该路线暂作历史实验与对照，不再优先扩展为正式产品；详见 [实验](docs/MACFUSE_EXPERIMENT.md)及[方案比较](docs/ALTERNATIVES.md)。真实物理卷集成、签名与发行仍未通过，**当前没有日用驱动**。
 
 ## 核心目标
 
