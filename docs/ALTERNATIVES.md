@@ -4,20 +4,24 @@
 
 本调查只读取官方文档、维护者源码、官方发行页面与 App Store 商品页面。没有安装、注册或启用候选扩展，没有购买应用，没有挂载真实磁盘，也没有联系外部维护者。macFUSE 的实际运行实验单独记录，以下表格不将静态研究计为挂载通过。
 
-## 当前选择
+## 2026-10-12 原生体验方向修订
 
-继续优先验证 macFUSE 官方已签名 FSKit 后端，由本项目的普通用户空间进程提供 NTFS 逻辑。它是现有候选中能在不修改已签名扩展的情况下继续开发自己文件系统逻辑的路线。必须显式选择 `backend=fskit`，并单独验证本地卷身份、底层拒写、推出、自动挂载和依赖许可。[官方后端说明](https://github.com/macfuse/macfuse/wiki/FUSE-Backends)
+以 [原生体验基准](NATIVE_EXPERIENCE_REFERENCE.md) 与 [实施计划](PLAN.md) 为准：**xntfs direct FSKit + libntfs-3g 是技术主标杆；Paragon 18 是用户体验标杆。** 这里的“主标杆”是公开源码/API 的复用与技术验证优先级，并**不**表示签名可直接复用、许可证已允许复制、成品性能优于商业软件，或物理 USB 自动挂载已通过本项目实测。
 
-xntfs 有实际 App Store 发行渠道，可作为独立系统实现的比较候选；其发行包收费，尚未获得和核验包，不是本项目已选定的免费依赖。NTFSKit 的公开资料目前不能提供一个已核验、可直接获取的签名包，且恢复策略与本项目 PRD 冲突。[xntfs 英国商店页面](https://apps.apple.com/gb/app/xntfs/id6782636021?mt=12)、[NTFSKit 官方销售页面](https://whereteam.com/ntfskit/buy)
+此前在没有自有签名身份的条件下优先尝试 macFUSE 已签名 FSKit 通道。该实验确实证明模块能加载，并能把只读镜像放在 `/Volumes` 供普通文件访问；但返回的是合成虚拟 DADisk，系统只读属性、真实 NTFS 设备身份及标准退出没有通过，公开 5.4.0 接口也未提供经核实的物理卷绑定方式。**不继续把 macFUSE 虚拟盘包装成“原生 NTFS 卷”来开发。** 保留实验作为证据和候选发布新接口时的回归用例。
 
-| 有限候选 | 签名包与获取状态 | 许可及免费要求 | 当前判断 |
-| --- | --- | --- | --- |
-| macFUSE 5.4.0 的 FSKit 后端 | 官方 DMG 已获取；此前已校验模块 Developer ID 签名与 FSKit 配置文件；运行实验另行验收 | 用户态 FUSE 库与完整产品的许可范围不同，部分组件不公开源码 | 优先实验；尚未确认符合全部 PRD |
-| HuanchuanTech/xntfs 1.0.9 | 官方 App Store 页面存在；英国标价 £0.99；未购买、下载或检查实际二进制 | 仓库根 `LICENSE` 是 GPLv2；未见 NTFSKit 那样的 UI 专有拆分；收费发行包不符合我们的免费安装目标 | 可比较、参考源码；不能直接计为免费签名接入组件 |
-| whereteam/ntfskit | GitHub releases 为空；官方 Pro 页面仍写公证审查中、预约后发售时取得下载链接 | driver 与最小 App-OSS host 标注 GPLv2／GPLv2-or-later；完整 Pro UI 专有且付费 | 当前无可核验签名包；恢复策略冲突，暂不采用 |
-| 已有团队为我们的扩展发行 | 当前没有具体发布方或发行包 | 可以保留本项目开源许可，但需要实际发行、签名和维护安排 | 技术上可行的发行安排；当前不可执行 |
+xntfs 的公开源代码已展示直接 `FSBlockDeviceResource` / `FSMediaTypes` / 系统 Disk Arbitration 路线，也有发行渠道及维护者 macOS 27 测试。但这并未解决 NTFSDriver 自有 `com.apple.developer.fskit.fsmodule` 的授权签名；缺乏真正发布方仍然阻断实机执行。xntfs App Store 发行包收费，不能当作本项目免费、可修改的 signed SDK。已有源码是否可直接复制还受 **GPL-2.0-only 与本项目 GPL-3.0-or-later 的兼容性**限制，逐文件确认前只作行为/架构参照。
 
-macFUSE 的官方发行、签名包静态核验与许可边界见 [SIGNING.md](SIGNING.md)。本表不能据产品的“无 KEXT”宣传证明本机 Full Security 验收。[macFUSE 5.4.0](https://github.com/macfuse/macfuse/releases/tag/macfuse-5.4.0)、[开源状态](https://github.com/macfuse/macfuse/wiki/Open-Source-Status)
+| 候选 | 价值 | 当前判断 |
+| --- | --- | --- |
+| HuanchuanTech/xntfs | 可审查的系统自动挂载、真实物理卷 FSKit 适配与 libntfs-3g 薄桥 | **主工程参考**；需另解签名、授权和 GPL 兼容 |
+| Paragon NTFS 18 | macOS 27 商业成熟 UX | **主体验基准**；其公开 KEXT / Reduced Security 路线不可采用 |
+| Tuxera NTFS for Mac 2027 | 商业完整版 NTFS 驱动与跨平台兼容参考 | 借鉴验收，不采用 KEXT；仅继续复用其开源 ntfs-3g 引擎 |
+| whereteam/NTFSKit | FSKit 内部结构、ADS、索引、读写处理示例 | 可交叉审阅，但默认 RECOVER、dirty 修复与当前政策冲突 |
+| macFUSE 5.4.0 FSKit | 不具自有签名时已经跑通的已签名用户空间通道 | **正式路线暂停**；除非未来公开、可分发签名版本解决真实物理磁盘身份、只读及正常推出 |
+| 其他具有效签名的发行主体 | 最可能解决独立扩展的合法签名门禁 | **G0**；未有实际合作，不能列为已交付 |
+
+以上修订不抹去下文此前对各候选的静态审查及日期。下文描述的当时获取条件、测试范围与源码限制仍应作为历史证据阅读。
 
 ## xntfs：有发行渠道，安全实现仍需按实际包验证
 
