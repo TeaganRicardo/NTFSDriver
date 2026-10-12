@@ -3,7 +3,9 @@ import CNTFSBridge
 import CryptoKit
 import Darwin
 import Foundation
+import FSKit
 import NTFSReadOnly
+@testable import NTFSFSKit
 import XCTest
 
 final class ReadOnlyTests: XCTestCase {
@@ -236,6 +238,37 @@ final class ReadOnlyTests: XCTestCase {
         try handle.close()
         let before = digest(try Data(contentsOf: image))
         XCTAssertThrowsError(try ReadOnlyVolume(imagePath: image.path))
+        XCTAssertEqual(before, digest(try Data(contentsOf: image)))
+    }
+
+    func testMalformedFreeSpaceBitmapIsRejectedWithoutRepair() throws {
+        let image = try fixture()
+        let handle = try FileHandle(forWritingTo: image)
+        // Fixed fixture: $Bitmap's 2048 bytes are at LCN 2055, for only 16383 clusters.
+        try handle.seek(toOffset: 2055 * 4096)
+        try handle.write(contentsOf: Data(count: 2048))
+        try handle.close()
+        let before = digest(try Data(contentsOf: image))
+        XCTAssertThrowsError(try ReadOnlyVolume(imagePath: image.path)) { error in
+            XCTAssertEqual((error as? POSIXError)?.code, .EIO)
+        }
+        XCTAssertEqual(before, digest(try Data(contentsOf: image)))
+    }
+
+    func testParentIdentityWhenAncestorIsNotCached() throws {
+        let image = try fixture()
+        let before = digest(try Data(contentsOf: image))
+        let engine = try ReadOnlyVolume(imagePath: image.path)
+        let volume = try ReadOnlyFSVolume(engine: engine, identifier: FSVolume.Identifier(uuid: UUID()),
+                                         lock: NSRecursiveLock(), stateChanged: { _ in })
+        // Reclaim removes the ancestor from the cache. Exercise that same cache-miss state
+        // without synthesizing FSKit's private kernel/user-space reference counters.
+        _ = try volume.resolveLookup(name: "$Extend", directory: 5, parent: 5)
+        let childReference = try engine.item(atPath: "/$Extend")
+        let (_, attributes) = try volume.resolveLookup(name: "..", directory: childReference, parent: 5)
+        XCTAssertEqual(attributes.fileID, .rootDirectory)
+        XCTAssertEqual(attributes.parentID, .rootDirectory)
+        try volume.closeEngine()
         XCTAssertEqual(before, digest(try Data(contentsOf: image)))
     }
 

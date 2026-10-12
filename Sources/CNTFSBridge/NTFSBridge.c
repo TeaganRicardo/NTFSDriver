@@ -145,6 +145,9 @@ static int open_volume(struct nd_volume *v, nd_volume **result) {
     NVolSetCaseSensitive(v->engine);
     ntfs_set_shown_files(v->engine, FALSE, TRUE, FALSE);
     int space_error = ntfs_volume_get_free_space(v->engine) ? errno : 0;
+    // Upstream counts every bitmap bit, including padding beyond the volume geometry.
+    if (!space_error && (v->engine->nr_clusters <= 0 || v->engine->free_clusters < 0 ||
+                         v->engine->free_clusters > v->engine->nr_clusters)) space_error = EIO;
     if (v->stats.denied_backend_writes || space_error) {
         ntfs_umount(v->engine, FALSE);
         v->engine = NULL;

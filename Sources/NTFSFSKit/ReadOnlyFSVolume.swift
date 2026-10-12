@@ -158,11 +158,22 @@ final class ReadOnlyFSVolume: FSVolume, FSVolume.Handler, FSVolume.ReadWriteHand
             do {
                 let parent = try checked(directory)
                 guard let text = name.string else { throw POSIXError(.EILSEQ) }
-                let reference = try engine.lookup(text, in: parent.reference)
-                let value = item(reference, parent: text == "." ? parent.parent : parent.reference)
-                let attributes = try attributes(reference, parent: value.parent)
+                let (value, attributes) = try resolveLookup(name: text, directory: parent.reference, parent: parent.parent)
                 replyResult(FSLookupItemResult(foundItem: value, itemName: name, itemAttributes: attributes), to: reply)
             } catch { reply(nil, error) }
+        }
+    }
+
+    // Kept independent of FSContext so cache and parent identity can be checked without a daemon.
+    func resolveLookup(name: String, directory: UInt64, parent: UInt64) throws -> (FSItem, FSItem.Attributes) {
+        try lock.withLock {
+            let reference = try engine.lookup(name, in: directory)
+            let containingDirectory: UInt64
+            if name == "." { containingDirectory = parent }
+            else if name == ".." { containingDirectory = try engine.lookup("..", in: reference) }
+            else { containingDirectory = directory }
+            let value = item(reference, parent: containingDirectory)
+            return (value, try attributes(reference, parent: value.parent))
         }
     }
 
