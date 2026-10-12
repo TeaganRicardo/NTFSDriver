@@ -3,6 +3,7 @@
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
 #include "NTFSBridge.h"
+#include "ReadRequest.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -95,17 +96,24 @@ static int open_file(const char *path, struct fuse_file_info *file) {
     return 0;
 }
 
+static ssize_t bridge_read(void *context, uint64_t reference, uint64_t offset,
+                           void *buffer, size_t count) {
+    return nd_read_file(context, reference, offset, buffer, count);
+}
+
 static int read_file(const char *path, char *buffer, size_t count, off_t offset,
                      struct fuse_file_info *file) {
     (void)path;
     int guard = read_guard();
     if (guard) return guard;
     if (offset < 0) return -EINVAL;
-    if (count > 1024 * 1024) count = 1024 * 1024;
-    ssize_t result = nd_read_file(volume, file->fh, (uint64_t)offset, buffer, count);
-    if (result < 0) return -errno;
+    nd_item_info info;
+    if (nd_get_item_info(volume, file->fh, &info)) return -errno;
+    int result = nd_read_request(volume, bridge_read, file->fh, info.size,
+                                 (uint64_t)offset, buffer, count);
+    if (result < 0) return result;
     guard = read_guard();
-    return guard ? guard : (int)result;
+    return guard ? guard : result;
 }
 
 static int statistics(const char *path, struct statvfs *stat) {

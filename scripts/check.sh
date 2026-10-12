@@ -7,6 +7,9 @@ trap 'rm -rf -- "$build_dir"' EXIT
 
 # Keep signed XCTest products outside Documents, where Finder metadata can break signing.
 python3 "$repository_dir/scripts/verify-vendor.py"
+clang -std=c11 -Wall -Wextra -Werror "$repository_dir/Experiments/macFUSE/ReadRequestTests.c" \
+    -o "$build_dir/read-request-tests"
+"$build_dir/read-request-tests"
 swift test --package-path "$repository_dir" --scratch-path "$build_dir"
 swift build --package-path "$repository_dir" --scratch-path "$build_dir" -c release
 swift build --package-path "$repository_dir" --scratch-path "$build_dir" -c release --target NTFSFSKit
